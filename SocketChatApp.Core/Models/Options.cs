@@ -13,6 +13,7 @@
     public enum PayloadResponseType {
         Response = 0,
         Configuration = 1000,
-        ChannelJoin = 2000
+        ChannelJoin = 2000,
+        Warning = 3000
     }
 }

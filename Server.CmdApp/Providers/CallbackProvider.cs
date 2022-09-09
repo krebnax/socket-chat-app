@@ -1,5 +1,7 @@
 ﻿using Server.CmdApp.Configuration;
+using Server.CmdApp.Models;
 using Server.CmdApp.Providers.Enums;
+using Server.CmdApp.Providers.Managers;
 using SocketChatApp.Core.Models;
 using System;
 using System.Linq;
@@ -25,7 +27,14 @@ namespace Server.CmdApp.Providers {
         private void AcceptCallback(IAsyncResult result) {
             var client = ServerInfo.Listener.EndAccept(result);
             ServerInfo.Clients.Add(client);
-            ServerInfo.ClientIds.Add(Guid.NewGuid(), client);
+
+            var clientId = Guid.NewGuid();
+            ServerInfo.ClientIds.Add(clientId, client);
+            ServerInfo.ClientSpamGuards.Add(new SpamGuardModel() {
+                ClientId = clientId.ToString(),
+                HasWarning = false,
+                LastTick = DateTime.Now.Ticks
+            });
 
             client.BeginReceive(
                 buffer: ServerInfo.MainBuffer,
@@ -49,8 +58,18 @@ namespace Server.CmdApp.Providers {
             Payload receivedPayload = JsonSerializer.Deserialize<Payload>(text);
 
             Console.WriteLine($"Received: {text}");
+            var sendManager = new SendManager();
 
-            // TODO: implement command line service
+            if (!receivedPayload.CanBypassGuard) {
+                var guardManager = new GuardManager(client, sendManager);
+                guardManager.Guard(receivedPayload, CreateCallback(CallbackType.Send), CreateCallback(CallbackType.Receive));
+            }
+
+            if (receivedPayload.SenderId != null) {
+                var clientGuard = ServerInfo.ClientSpamGuards.First(x => x.ClientId == receivedPayload.SenderId);
+                clientGuard.LastTick = DateTime.Now.Ticks;
+            }
+
             var cmd = new CommandLineService();
             bool isTalkingToServer = receivedPayload.Content.StartsWith(CommandLineService.COMMAND_LITERAL);
 
@@ -58,20 +77,7 @@ namespace Server.CmdApp.Providers {
                 var serialized = JsonSerializer.Serialize(cmd.GetCommandResult(receivedPayload.Content, client));
                 var data = Encoding.UTF8.GetBytes(serialized);
 
-                client.BeginSend(
-                    buffer: data,
-                    offset: 0,
-                    size: data.Length,
-                    socketFlags: SocketFlags.None,
-                    callback: CreateCallback(CallbackType.Send),
-                    state: client);
-                client.BeginReceive(
-                    buffer: ServerInfo.MainBuffer,
-                    offset: 0,
-                    size: ServerInfo.MainBuffer.Length,
-                    socketFlags: SocketFlags.None,
-                    callback: CreateCallback(CallbackType.Receive),
-                    state: client);
+                sendManager.Send(client, data, CreateCallback(CallbackType.Send), CreateCallback(CallbackType.Receive));
             } else {
                 var senderId = ServerInfo.ClientIds.First(x => x.Value == client).Key.ToString();
                 var payload = new Payload() {
@@ -85,22 +91,7 @@ namespace Server.CmdApp.Providers {
                 var serialized = JsonSerializer.Serialize(payload);
                 var data = Encoding.UTF8.GetBytes(serialized);
                 var toClients = ServerInfo.Channels.First(x => x.Id == receivedPayload.ChannelId).Members;
-                foreach (var socket in toClients) {
-                    socket.BeginSend(
-                       buffer: data,
-                       offset: 0,
-                       size: data.Length,
-                       socketFlags: SocketFlags.None,
-                       callback: CreateCallback(CallbackType.Send),
-                       state: socket);
-                    socket.BeginReceive(
-                        buffer: ServerInfo.MainBuffer,
-                        offset: 0,
-                        size: ServerInfo.MainBuffer.Length,
-                        socketFlags: SocketFlags.None,
-                        callback: CreateCallback(CallbackType.Receive),
-                        state: socket);
-                }
+                sendManager.Send(toClients, data, CreateCallback(CallbackType.Send), CreateCallback(CallbackType.Receive));
             }
         }
         private void SendCallback(IAsyncResult result) {

@@ -20,10 +20,12 @@ namespace Client.CmdApp {
                     await ClientInfo.Client.ConnectAsync(Config.ENDPOINT);
                     ClientInfo.Client.BeginReceive(ClientInfo.MainBuffer, 0, ClientInfo.MainBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), ClientInfo.Client);
                     Send(JsonSerializer.Serialize(new Payload() {
-                        Content = "--get-config"
+                        Content = "--get-config",
+                        CanBypassGuard = true
                     }));
                     Send(JsonSerializer.Serialize(new Payload() {
-                        Content = "--get-channels"
+                        Content = "--get-channels",
+                        CanBypassGuard = true
                     }));
                     Console.WriteLine("Connected.");
                     TrySend();
@@ -78,7 +80,11 @@ namespace Client.CmdApp {
                 ClientInfo.CurrentChannel = payload.ChannelId;
             }
 
-            if (payload.SenderId != ClientInfo.CliendId)
+            if (payload.PayloadType == PayloadResponseType.Warning) {
+                Console.WriteLine($"### You can't have more than one request per second ###");
+            }
+
+            if (payload.SenderId != ClientInfo.CliendId && payload.PayloadType != PayloadResponseType.Warning)
                 Console.WriteLine($"\n--> {payload.Content}");
 
             client.BeginReceive(ClientInfo.MainBuffer, 0, ClientInfo.MainBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), client);

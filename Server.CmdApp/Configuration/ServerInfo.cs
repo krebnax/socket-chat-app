@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using Server.CmdApp.Models;
 using SocketChatApp.Core.Models;
 
 namespace Server.CmdApp.Configuration {
@@ -12,7 +13,8 @@ namespace Server.CmdApp.Configuration {
         private static Dictionary<Guid, Socket> _clientIds;
         private static string _serverId;
         private static List<Channel<Socket>> _channels;
-
+        private static List<SpamGuardModel> _clientSpamGuards;
+        public const long ALLOWED_TICK = 10010000;
         private ServerInfo() { }
 
         internal static string ServerId {
@@ -80,6 +82,15 @@ namespace Server.CmdApp.Configuration {
                 }
 
                 return _channels;
+            }
+        }
+
+        internal static List<SpamGuardModel> ClientSpamGuards {
+            get {
+                if (_clientSpamGuards == null)
+                    _clientSpamGuards = new List<SpamGuardModel>();
+
+                return _clientSpamGuards;
             }
         }
     }

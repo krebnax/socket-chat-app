@@ -9,5 +9,6 @@ namespace SocketChatApp.Core.Models {
         public string Content { get; set; }
         public PayloadFormat Format { get; set; }
         public PayloadResponseType? PayloadType { get; set; } = PayloadResponseType.Response;
+        public bool CanBypassGuard { get; set; } = false;
     }
 }
