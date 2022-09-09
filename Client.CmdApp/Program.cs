@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Client.CmdApp.Configuration;
+using SocketChatApp.Core.Models;
 
 namespace Client.CmdApp {
     internal class Program {
@@ -17,7 +19,12 @@ namespace Client.CmdApp {
                     attempts++;
                     await ClientInfo.Client.ConnectAsync(Config.ENDPOINT);
                     ClientInfo.Client.BeginReceive(ClientInfo.MainBuffer, 0, ClientInfo.MainBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), ClientInfo.Client);
-
+                    Send(JsonSerializer.Serialize(new Payload() {
+                        Content = "--get-config"
+                    }));
+                    Send(JsonSerializer.Serialize(new Payload() {
+                        Content = "--get-channels"
+                    }));
                     Console.WriteLine("Connected.");
                     TrySend();
                 } catch (Exception) {
@@ -32,7 +39,19 @@ namespace Client.CmdApp {
         static void TrySend() {
             while (true) {
                 var input = Console.ReadLine();
-                Send(input);
+                if (ClientInfo.CurrentChannel == null && !input.StartsWith("--")) {
+                    Console.WriteLine("Join a channel first with --join-channel <channel_name>. To see channel list use --get-channels");
+                    continue;
+                }
+                var payload = new Payload() {
+                    ChannelId = ClientInfo.CurrentChannel,
+                    Content = input,
+                    Format = PayloadFormat.Json,
+                    SenderId = ClientInfo.CliendId
+                };
+
+                var serialized = JsonSerializer.Serialize(payload);
+                Send(serialized);
             }
         }
 
@@ -48,7 +67,19 @@ namespace Client.CmdApp {
             Array.Copy(ClientInfo.MainBuffer, dataBuffer, received);
 
             var text = Encoding.UTF8.GetString(dataBuffer);
-            Console.WriteLine($"Received: {text}");
+
+            var payload = JsonSerializer.Deserialize<Payload>(text);
+
+            if (payload.PayloadType == PayloadResponseType.Configuration) {
+                ClientInfo.CliendId = payload.Content;
+            }
+
+            if (payload.PayloadType == PayloadResponseType.ChannelJoin) {
+                ClientInfo.CurrentChannel = payload.ChannelId;
+            }
+
+            if (payload.SenderId != ClientInfo.CliendId)
+                Console.WriteLine($"\n--> {payload.Content}");
 
             client.BeginReceive(ClientInfo.MainBuffer, 0, ClientInfo.MainBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), client);
         }
