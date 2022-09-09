@@ -5,4 +5,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SocketChatApp.Core\SocketChatApp.Core.csproj" />
+  </ItemGroup>
+
 </Project>
