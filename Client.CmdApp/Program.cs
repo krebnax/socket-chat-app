@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Server.CmdApp {
+namespace Client.CmdApp {
     internal class Program {
         static void Main(string[] args) {
         }

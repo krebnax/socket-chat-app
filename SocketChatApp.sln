@@ -5,6 +5,10 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.CmdApp", "Server.CmdApp\Server.CmdApp.csproj", "{815456DA-9950-4FE1-BD9F-37235ACCC4F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.CmdApp", "Client.CmdApp\Client.CmdApp.csproj", "{D0FC0D9C-DE99-4D98-A05B-FEA9772754EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketChatApp.Core", "SocketChatApp.Core\SocketChatApp.Core.csproj", "{901B7276-F9E0-4BCE-8E25-E1C1CB8AD7D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{815456DA-9950-4FE1-BD9F-37235ACCC4F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{815456DA-9950-4FE1-BD9F-37235ACCC4F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{815456DA-9950-4FE1-BD9F-37235ACCC4F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0FC0D9C-DE99-4D98-A05B-FEA9772754EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0FC0D9C-DE99-4D98-A05B-FEA9772754EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0FC0D9C-DE99-4D98-A05B-FEA9772754EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0FC0D9C-DE99-4D98-A05B-FEA9772754EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{901B7276-F9E0-4BCE-8E25-E1C1CB8AD7D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{901B7276-F9E0-4BCE-8E25-E1C1CB8AD7D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{901B7276-F9E0-4BCE-8E25-E1C1CB8AD7D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{901B7276-F9E0-4BCE-8E25-E1C1CB8AD7D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
